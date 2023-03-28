@@ -21,7 +21,6 @@ public class JavaSchoolStarter {
         // Приводим к нижнему регистру чтобы запросы были универсальными для разных регистров
         request = request.toLowerCase(Locale.ROOT);
         parseQuery(request);
-        System.out.println(request);
         //Здесь начало исполнения вашего кода
         // return new ArrayList<>();
         return null;
@@ -43,6 +42,8 @@ public class JavaSchoolStarter {
         // Добавление карты (строки таблицы) в список
         try {
             data.add(parseParameters(request));
+            System.out.println(request);
+            printData();
         } catch (InvalidParameterInTable e) {
             throw new RuntimeException(e);
         } catch (AllFieldsAreNull e) {
@@ -99,6 +100,30 @@ public class JavaSchoolStarter {
                 throw new AllFieldsAreNull();
         }
         return row;
+    }
+
+    public void printData() {
+        System.out.printf("%7s %12s %12s %12s %12s\n", "id", "lastName", "cost", "age", "active");
+        long id = 0;
+        String lastName = null;
+        double cost = 0;
+        long age = 0;
+        boolean active = false;
+        for (int i = 0; i < data.size(); i++) {
+            for (Map.Entry<String, Object> row : data.get(i).entrySet()) {
+                if (row.getKey().equals("id"))
+                    id = (long) row.getValue();
+                else if (row.getKey().equals("lastname"))
+                    lastName = row.getValue().toString();
+                else if (row.getKey().equals("cost"))
+                    cost = (double) row.getValue();
+                else if (row.getKey().equals("age"))
+                    age = (long) row.getValue();
+                else if (row.getKey().equals("active"))
+                    active = (boolean) row.getValue();
+            }
+            System.out.printf("%7s %12s %12s %12s %12s\n", id, lastName, cost, age, active);
+        }
     }
 
 }
