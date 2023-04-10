@@ -10,6 +10,8 @@ import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static com.digdes.school.print.PrintData.printData;
+
 public class JavaSchoolStarter {
     private List<Map<String, Object>> data;
 
@@ -41,7 +43,7 @@ public class JavaSchoolStarter {
             select();
         else throw new InvalidRequest(request);
 
-        printData();
+        printData(data);
     }
 
     public void insert(String request) {
@@ -135,10 +137,11 @@ public class JavaSchoolStarter {
             // Если строка подходит по условию - меняем ее
             if (result) {
                 for (Map.Entry mapChanges : changes.entrySet()) {
+                    String key = String.valueOf(mapChanges.getKey());
                     if (!data.get(i).containsKey(String.valueOf(mapChanges.getKey())))
-                        data.get(i).put(String.valueOf(mapChanges.getKey()), mapChanges.getValue());
+                        data.get(i).put(key, mapChanges.getValue());
                     else
-                        data.get(i).replace(String.valueOf(mapChanges.getKey()), mapChanges.getValue());
+                        data.get(i).replace(key, mapChanges.getValue());
                 }
             }
         }
@@ -279,29 +282,5 @@ public class JavaSchoolStarter {
                 break;
         }
         return row;
-    }
-
-    public void printData() {
-        System.out.printf("%7s %12s %12s %12s %12s\n", "id", "lastName", "cost", "age", "active");
-        for (int i = 0; i < data.size(); i++) {
-            Long id = null;
-            String lastName = null;
-            Double cost = null;
-            Long age = null;
-            Boolean active = false;
-            for (Map.Entry<String, Object> row : data.get(i).entrySet()) {
-                if (row.getKey().equals("id"))
-                    id = (Long) row.getValue();
-                else if (row.getKey().equals("lastname"))
-                    lastName = row.getValue().toString();
-                else if (row.getKey().equals("cost"))
-                    cost = (Double) row.getValue();
-                else if (row.getKey().equals("age"))
-                    age = (Long) row.getValue();
-                else if (row.getKey().equals("active"))
-                    active = (Boolean) row.getValue();
-            }
-            System.out.printf("%7s %12s %12s %12s %12s\n", id, lastName, cost, age, active);
-        }
     }
 }
