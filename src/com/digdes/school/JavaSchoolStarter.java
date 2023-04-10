@@ -19,7 +19,7 @@ public class JavaSchoolStarter {
     }
 
     //На вход запрос, на выход результат выполнения запроса
-    public List<Map<String, Object>> execute(String request) throws Exception {
+    public List<Map<String, Object>> execute(String request) {
         // Приводим к нижнему регистру чтобы запросы были универсальными для разных регистров
         request = request.toLowerCase(Locale.ROOT);
         parseQuery(request);
@@ -67,6 +67,8 @@ public class JavaSchoolStarter {
                 throw new RuntimeException(e);
             } catch (AllFieldsAreNull e) {
                 throw new RuntimeException(e);
+            } catch (WrongComparing e) {
+                throw new RuntimeException(e);
             }
         }
         // TODO: Команды DELETE, SELECT, UPDATE могут выполняться без условия WHERE. В этом
@@ -96,7 +98,7 @@ public class JavaSchoolStarter {
 
     }
 
-    public void handleWhere(String request) throws InvalidParameterInTable, AllFieldsAreNull {
+    public void handleWhere(String request) throws InvalidParameterInTable, AllFieldsAreNull, WrongComparing {
         List<Condition> conditions = new ArrayList<>();
 
         // Divide the request on 2 parts
@@ -119,24 +121,48 @@ public class JavaSchoolStarter {
         Map<String, Object> changes = new HashMap<>();
         changes = parseParameters(requestParts[0]);
 
+        boolean result = false, prevResult = false;
         for (int i = 0; i < data.size(); i++) {
             for (int j = 0; j < conditions.size(); j++) {
                 String field = conditions.get(j).getField();
-                Object value = conditions.get(j).getValue();
-                Object mapValue = data.get(i).get(field);
-                System.out.println(field + " " + value + " " + mapValue);
+                // Записываем результаты в список, чтобы потом сравнить на И и ИЛИ
+                result = checkExpression(conditions.get(j), data.get(i).get(field));
+                if (j != 0) {
+                    result = logicalCalc(result, prevResult, conditions.get(j - 1).getNextOperator());
+                }
+                prevResult = result;
             }
-            /*for (Map.Entry map : data.get(i).entrySet()) {
-                System.out.println(map.toString());
-            }*/
+            // Если строка подходит по условию - меняем ее
+            if (result) {
+                for (Map.Entry mapChanges : changes.entrySet()) {
+                    if (!data.get(i).containsKey(String.valueOf(mapChanges.getKey())))
+                        data.get(i).put(String.valueOf(mapChanges.getKey()), mapChanges.getValue());
+                    else
+                        data.get(i).replace(String.valueOf(mapChanges.getKey()), mapChanges.getValue());
+                }
+            }
         }
+    }
+
+    // Функция для вычисления логического выражения (И и ИЛИ)
+    public boolean logicalCalc(boolean result, boolean prevResult, String operator) {
+        if (operator.equals("and"))
+            return result & prevResult;
+        else if (operator.equals("or"))
+            return result | prevResult;
+        return false;
     }
 
     public boolean checkExpression(Condition condition, Object mapVal) throws WrongComparing {
         Object condVal = condition.getValue();
+        String sign = condition.getSign();
         boolean result = false;
 
-        switch (condition.getSign()) {
+        // TODO: 13)Значения которые передаются на сравнение не могут быть null
+        if (condVal == null || mapVal == null)
+            return false;
+
+        switch (sign) {
             case "!=":
                 result = ComparisonFunctions.checkNotEquals(condVal, mapVal);
                 break;
@@ -170,6 +196,9 @@ public class JavaSchoolStarter {
         else if (condition.contains("or"))
             condition = setOperator("or", conditionObj, condition);
 
+        // Убираем все пробелы
+        condition = condition.replace(" ", "");
+
         // Устанавливаем знак в условии
         String sign = null;
         Pattern pattern = Pattern.compile("[<>=!]+");
@@ -180,15 +209,28 @@ public class JavaSchoolStarter {
 
         // Устанавливаем имя и значение переменной
         conditionObj.setField(substr[0]);
-        conditionObj.setValue(substr[1]);
+        switch (substr[0]) {
+            case "id":
+            case "age":
+                conditionObj.setValue(Long.parseLong(substr[1]));
+                break;
+            case "lastname":
+                conditionObj.setValue(substr[1]);
+                break;
+            case "cost":
+                conditionObj.setValue(Double.parseDouble(substr[1]));
+                break;
+            case "active":
+                conditionObj.setValue(Boolean.parseBoolean(substr[1]));
+                break;
+        }
+
         return conditionObj;
     }
 
     public String setOperator(String operator, Condition conditionObj, String condition) {
         conditionObj.setNextOperator(operator);
-        return condition
-                .replace(operator, "")
-                .replace(" ", "");
+        return condition.replace(operator, "");
     }
 
     public String[] setSign(String sign, Condition conditionObj, String condition) {
@@ -201,7 +243,6 @@ public class JavaSchoolStarter {
 
         Pattern pattern = Pattern.compile("'[a-z]+'\\s*[=!><]+\\s*([0-9]+[.]?[0-9]*|'?[a-zа-я]+'?)");
         Matcher matcher = pattern.matcher(request);
-        int counter = 0;
 
         while (matcher.find()) {
             String[] substr = request
@@ -211,26 +252,32 @@ public class JavaSchoolStarter {
                     .split("=");
 
             // Проверка соответствия колонок таблицы и параметров запроса
-            if (substr[0].equals("id")) {
-                row.put(substr[0], Long.parseLong(substr[1]));
-                counter++;
-            } else if (substr[0].equals("lastname")) {
-                row.put(substr[0], substr[1]);
-                counter++;
-            } else if (substr[0].equals("cost")) {
-                row.put(substr[0], Double.parseDouble(substr[1]));
-                counter++;
-            } else if (substr[0].equals("age")) {
-                row.put(substr[0], Long.parseLong(substr[1]));
-                counter++;
-            } else if (substr[0].equals("active")) {
-                row.put(substr[0], Boolean.parseBoolean(substr[1]));
-                counter++;
-            } else throw new InvalidParameterInTable(substr[0]);
+            row = typeConversation(substr, row);
         }
-        if (counter == 0)
+
+        if (row.size() == 0)
             throw new AllFieldsAreNull();
 
+        return row;
+    }
+
+    public Map<String, Object> typeConversation(String[] substr, Map<String, Object> row) {
+
+        switch (substr[0]) {
+            case "id":
+            case "age":
+                row.put(substr[0], Long.parseLong(substr[1]));
+                break;
+            case "lastname":
+                row.put(substr[0], substr[1]);
+                break;
+            case "cost":
+                row.put(substr[0], Double.parseDouble(substr[1]));
+                break;
+            case "active":
+                row.put(substr[0], Boolean.parseBoolean(substr[1]));
+                break;
+        }
         return row;
     }
 
@@ -257,5 +304,4 @@ public class JavaSchoolStarter {
             System.out.printf("%7s %12s %12s %12s %12s\n", id, lastName, cost, age, active);
         }
     }
-
 }
