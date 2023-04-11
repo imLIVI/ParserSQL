@@ -23,32 +23,26 @@ public class ParseExprBeforeWhere {
                     .split("=");
 
             // Проверка соответствия колонок таблицы и параметров запроса
-            row = typeConversation(substr, row);
+            switch (substr[0]) {
+                case "id":
+                case "age":
+                    row.put(substr[0], Long.parseLong(substr[1]));
+                    break;
+                case "lastname":
+                    row.put(substr[0], substr[1]);
+                    break;
+                case "cost":
+                    row.put(substr[0], Double.parseDouble(substr[1]));
+                    break;
+                case "active":
+                    row.put(substr[0], Boolean.parseBoolean(substr[1]));
+                    break;
+            }
         }
 
         if (row.size() == 0)
             throw new AllFieldsAreNull();
 
-        return row;
-    }
-
-    public static Map<String, Object> typeConversation(String[] substr, Map<String, Object> row) {
-
-        switch (substr[0]) {
-            case "id":
-            case "age":
-                row.put(substr[0], Long.parseLong(substr[1]));
-                break;
-            case "lastname":
-                row.put(substr[0], substr[1]);
-                break;
-            case "cost":
-                row.put(substr[0], Double.parseDouble(substr[1]));
-                break;
-            case "active":
-                row.put(substr[0], Boolean.parseBoolean(substr[1]));
-                break;
-        }
         return row;
     }
 }

@@ -12,12 +12,8 @@ import static com.digdes.school.parse.ParseExprBeforeWhere.parseParameters;
 import static com.digdes.school.print.PrintData.printData;
 
 public class JavaSchoolStarter {
-    public static List<Map<String, Object>> data;
 
-    //Дефолтный конструктор
-    public JavaSchoolStarter() {
-        this.data = new ArrayList<>();
-    }
+    public static List<Map<String, Object>> data = new ArrayList<>();
 
     //На вход запрос, на выход результат выполнения запроса
     public List<Map<String, Object>> execute(String request) {
@@ -34,12 +30,8 @@ public class JavaSchoolStarter {
 
         if (request.contains("insert"))
             insert(request);
-        else if (request.contains("update"))
-            update(request);
-        else if (request.contains("delete"))
-            delete();
-        else if (request.contains("select"))
-            select();
+        else if (request.contains("update") | request.contains("delete") | request.contains("select"))
+            uds(request);
         else throw new InvalidRequest(request);
 
         printData(data);
@@ -51,22 +43,16 @@ public class JavaSchoolStarter {
             if (!request.contains("where")) {
                 data.add(parseParameters(request));
             }
-        } catch (InvalidParameterInTable e) {
-            throw new RuntimeException(e);
-        } catch (AllFieldsAreNull e) {
+        } catch (InvalidParameterInTable | AllFieldsAreNull e) {
             throw new RuntimeException(e);
         }
     }
 
-    public void update(String request) {
-        Map<String, Object> row = new HashMap<>();
-
+    public void uds(String request) {
         if (request.contains("where")) {
             try {
                 handleWhere(request);
-            } catch (InvalidParameterInTable e) {
-                throw new RuntimeException(e);
-            } catch (AllFieldsAreNull e) {
+            } catch (InvalidParameterInTable | AllFieldsAreNull e) {
                 throw new RuntimeException(e);
             } catch (WrongComparing e) {
                 throw new RuntimeException(e);
@@ -83,23 +69,9 @@ public class JavaSchoolStarter {
 
                 // Replacing old values with new ones
                 data.add(parseParameters(request));
-            } catch (InvalidParameterInTable e) {
-                throw new RuntimeException(e);
-            } catch (AllFieldsAreNull e) {
+            } catch (InvalidParameterInTable | AllFieldsAreNull e) {
                 throw new RuntimeException(e);
             }
         }
     }
-
-    public void delete() {
-
-    }
-
-    public void select() {
-
-    }
-
-
-
-
 }

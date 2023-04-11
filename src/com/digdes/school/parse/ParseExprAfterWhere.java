@@ -7,7 +7,6 @@ import com.digdes.school.exceptions.InvalidParameterInTable;
 import com.digdes.school.exceptions.WrongComparing;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
@@ -15,12 +14,13 @@ import java.util.regex.Pattern;
 
 import static com.digdes.school.JavaSchoolStarter.data;
 import static com.digdes.school.parse.ParseExprBeforeWhere.parseParameters;
+import static com.digdes.school.print.PrintData.printData;
 
 public class ParseExprAfterWhere {
     public static void handleWhere(String request) throws InvalidParameterInTable, AllFieldsAreNull, WrongComparing {
         List<ComparisonExpressions> conditions = new ArrayList<>();
 
-        // Divide the request on 2 parts
+        // Divide the request on 2 parts - before WHERE and after WHERE
         String[] requestParts = request.split("where");
         Pattern pattern = Pattern.compile("'[a-z]+'\\s*[=!><]+\\s*([0-9]+[.]?[0-9]*|'?[a-zа-я]+'?)\\s*[(and)|(or)]*");
 
@@ -35,11 +35,7 @@ public class ParseExprAfterWhere {
             conditions.add(parseConditions(substr));
         }
 
-        // Before where
-        // Получаем строку с изменениями, которые надо внести в строки, подходящие по условию
-        Map<String, Object> changes = new HashMap<>();
-        changes = parseParameters(requestParts[0]);
-
+        // Сравниваем и меняем делаем ДЕЙСТВИЕ (UPDATE, DELETE, SELECT)
         boolean result = false, prevResult = false;
         for (int i = 0; i < data.size(); i++) {
             for (int j = 0; j < conditions.size(); j++) {
@@ -51,18 +47,40 @@ public class ParseExprAfterWhere {
                 }
                 prevResult = result;
             }
-            // Если строка подходит по условию - меняем ее
+            // Если строка подходит по условию - меняем ее (UPDATE)
             if (result) {
-                for (Map.Entry mapChanges : changes.entrySet()) {
-                    String key = String.valueOf(mapChanges.getKey());
-                    if (!data.get(i).containsKey(String.valueOf(mapChanges.getKey())))
-                        data.get(i).put(key, mapChanges.getValue());
-                    else
-                        data.get(i).replace(key, mapChanges.getValue());
-                }
+                if (request.contains("update"))
+                    update(requestParts[0], i);
+                else if (request.contains("delete"))
+                    delete(i);
+                else if (request.contains("select"))
+                    select(i);
             }
         }
     }
+
+    public static void update(String beforeWhere, int i) throws InvalidParameterInTable, AllFieldsAreNull {
+        // Before where
+        // Получаем строку с изменениями, которые надо внести в строки, подходящие по условию
+        Map<String, Object> changes = parseParameters(beforeWhere);
+
+        for (Map.Entry mapChanges : changes.entrySet()) {
+            String key = String.valueOf(mapChanges.getKey());
+            if (!data.get(i).containsKey(String.valueOf(mapChanges.getKey())))
+                data.get(i).put(key, mapChanges.getValue());
+            else
+                data.get(i).replace(key, mapChanges.getValue());
+        }
+    }
+
+    public static void delete(int i) {
+        data.remove(i);
+    }
+
+    public static void select(int i) {
+        System.out.println("SELECT" + data.get(i));
+    }
+
 
     // Функция для вычисления логического выражения (И и ИЛИ)
     public static boolean logicalCalc(boolean result, boolean prevResult, String operator) {

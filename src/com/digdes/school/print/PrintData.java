@@ -27,4 +27,8 @@ public class PrintData {
             System.out.printf("%7s %12s %12s %12s %12s\n", id, lastName, cost, age, active);
         }
     }
+
+    public static void printQuery(String query) {
+        System.out.println(query);
+    }
 }
