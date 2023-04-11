@@ -10,14 +10,12 @@ import com.digdes.school.query.Query;
 
 import java.util.*;
 
-import static com.digdes.school.print.PrintData.printQuery;
-
 public class JavaSchoolStarter {
     public static List<Map<String, Object>> data = new ArrayList<>();
 
     //На вход запрос, на выход результат выполнения запроса
     public List<Map<String, Object>> execute(String request) {
-        printQuery(request);
+        System.out.println(request);
         try {
             // Получение запроса после парсинга
             Query query = QueryParser.parse(request);
@@ -54,8 +52,6 @@ public class JavaSchoolStarter {
             throw new RuntimeException(e);
         }
 
-        //Здесь начало исполнения вашего кода
-        // return new ArrayList<>();
         return data;
     }
 
