@@ -1,6 +1,6 @@
-package com.digdes.school;
+package com.digdes.school.comparison;
 
-public class Condition {
+public class ComparisonExpressions {
     private String field;
     private String sign;
     private Object value;
