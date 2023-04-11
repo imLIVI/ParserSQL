@@ -13,43 +13,42 @@ import java.util.*;
 public class JavaSchoolStarter {
     public static List<Map<String, Object>> data = new ArrayList<>();
 
+    //Дефолтный конструктор
+    public JavaSchoolStarter() {
+    }
+
     //На вход запрос, на выход результат выполнения запроса
-    public List<Map<String, Object>> execute(String request) {
+    public List<Map<String, Object>> execute(String request) throws Exception {
         System.out.println(request);
-        try {
-            // Получение запроса после парсинга
-            Query query = QueryParser.parse(request);
 
-            // Получение класса команды - SELECT / UPDATE / DELETE / INSERT
-            Command commandClass = Command.defineCommand(query.getComand());
+        // Получение запроса после парсинга
+        Query query = QueryParser.parse(request);
 
-            if (query.isFlagWhere()) {
-                List<ComparisonExpressions> conditions = query.getConditions();
+        // Получение класса команды - SELECT / UPDATE / DELETE / INSERT
+        Command commandClass = Command.defineCommand(query.getComand());
 
-                // Сравниваем и меняем делаем ДЕЙСТВИЕ (UPDATE, DELETE, SELECT)
-                boolean result = false, prevResult = false;
-                for (int i = 0; i < data.size(); i++) {
-                    for (int j = 0; j < conditions.size(); j++) {
-                        String field = conditions.get(j).getField();
-                        // Записываем результаты в список, чтобы потом сравнить на И и ИЛИ
-                        result = checkExpression(conditions.get(j), data.get(i).get(field));
-                        if (j != 0) {
-                            result = logicalCalc(result, prevResult, conditions.get(j - 1).getNextOperator());
-                        }
-                        prevResult = result;
+        if (query.isFlagWhere()) {
+            List<ComparisonExpressions> conditions = query.getConditions();
+
+            // Сравниваем и меняем делаем ДЕЙСТВИЕ (UPDATE, DELETE, SELECT)
+            boolean result = false, prevResult = false;
+            for (int i = 0; i < data.size(); i++) {
+                for (int j = 0; j < conditions.size(); j++) {
+                    String field = conditions.get(j).getField();
+                    // Записываем результаты в список, чтобы потом сравнить на И и ИЛИ
+                    result = checkExpression(conditions.get(j), data.get(i).get(field));
+                    if (j != 0) {
+                        result = logicalCalc(result, prevResult, conditions.get(j - 1).getNextOperator());
                     }
-                    // Если строка подходит по условию - меняем ее (UPDATE)
-                    if (result) {
-                        commandClass.actionWithConditional(query, i);
-                    }
+                    prevResult = result;
                 }
-            } else {
-                commandClass.actionWithoutConditional(query);
+                // Если строка подходит по условию - меняем ее (UPDATE)
+                if (result) {
+                    commandClass.actionWithConditional(query, i);
+                }
             }
-        } catch (AllFieldsAreNull e) {
-            throw new RuntimeException(e);
-        } catch (WrongComparing e) {
-            throw new RuntimeException(e);
+        } else {
+            commandClass.actionWithoutConditional(query);
         }
 
         return data;

@@ -28,7 +28,7 @@ public class Select extends Command {
         Double cost = null;
         Long age = null;
         Boolean active = false;
-        for(Map.Entry column : data.get(i).entrySet()) {
+        for (Map.Entry column : data.get(i).entrySet()) {
             if (column.getKey().equals("id"))
                 id = (Long) column.getValue();
             else if (column.getKey().equals("lastname"))
@@ -42,5 +42,4 @@ public class Select extends Command {
         }
         System.out.printf("%7s %12s %12s %12s %12s\n", id, lastName, cost, age, active);
     }
-
 }

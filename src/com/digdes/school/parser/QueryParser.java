@@ -13,7 +13,7 @@ public class QueryParser {
     private static final String REGEX_EXPRESSIONS = "'[a-z]+'\\s*[=!><]+\\s*([0-9]+[.]?[0-9]*|'?[a-zа-я]+'?)\\s*[(and)|(or)]*";
     private static final String REGEX_SIGN_IN_EXPRESSIONS = "[<>=!]+";
 
-    private static Query queryObj = new Query();
+    private static final Query queryObj = new Query();
 
     public static Query parse(String query) throws AllFieldsAreNull {
         query = query.toLowerCase(Locale.ROOT);
@@ -74,7 +74,7 @@ public class QueryParser {
         return row;
     }
 
-    public static List<ComparisonExpressions> parseAfterWhere(String query) throws AllFieldsAreNull {
+    public static List<ComparisonExpressions> parseAfterWhere(String query) {
         List<ComparisonExpressions> conditions = new ArrayList<>();
 
         Pattern pattern = Pattern.compile(REGEX_EXPRESSIONS);
