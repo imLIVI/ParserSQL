@@ -2,9 +2,9 @@ package com.digdes.school.command;
 
 import com.digdes.school.query.Query;
 
-import static com.digdes.school.StarterTest.data;
+import static com.digdes.school.JavaSchoolStarter.data;
 
-public class Delete extends Command{
+public class Delete extends Command {
 
     @Override
     public void actionWithoutConditional(Query query) {

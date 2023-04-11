@@ -2,10 +2,10 @@ package com.digdes.school.command;
 
 import com.digdes.school.query.Query;
 
-import static com.digdes.school.StarterTest.data;
+import static com.digdes.school.JavaSchoolStarter.data;
 import static com.digdes.school.print.PrintData.printData;
 
-public class Select extends Command{
+public class Select extends Command {
 
     @Override
     public void actionWithoutConditional(Query query) {

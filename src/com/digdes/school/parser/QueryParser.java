@@ -141,7 +141,4 @@ public class QueryParser {
         conditionObj.setSign(sign);
         return condition.split(sign);
     }
-
-
-
 }

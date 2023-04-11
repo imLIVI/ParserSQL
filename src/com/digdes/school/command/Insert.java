@@ -3,10 +3,9 @@ package com.digdes.school.command;
 import com.digdes.school.exceptions.InvalidRequest;
 import com.digdes.school.query.Query;
 
-import static com.digdes.school.StarterTest.data;
-import static com.digdes.school.parse.ParseExprBeforeWhere.parseParameters;
+import static com.digdes.school.JavaSchoolStarter.data;
 
-public class Insert extends Command{
+public class Insert extends Command {
 
     @Override
     public void actionWithoutConditional(Query query) {
