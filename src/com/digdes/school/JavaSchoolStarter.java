@@ -3,7 +3,6 @@ package com.digdes.school;
 import com.digdes.school.command.Command;
 import com.digdes.school.comparison.ComparisonExpressions;
 import com.digdes.school.comparison.ComparisonFunctions;
-import com.digdes.school.exceptions.AllFieldsAreNull;
 import com.digdes.school.exceptions.WrongComparing;
 import com.digdes.school.parser.QueryParser;
 import com.digdes.school.query.Query;
@@ -67,7 +66,7 @@ public class JavaSchoolStarter {
         String sign = condition.getSign();
         boolean result = false;
 
-        // TODO: 13)Значения которые передаются на сравнение не могут быть null
+        // Значения которые передаются на сравнение не могут быть null
         if (condVal == null || mapVal == null)
             return false;
 
@@ -89,6 +88,12 @@ public class JavaSchoolStarter {
                 break;
             case "=":
                 result = ComparisonFunctions.checkEquals(condVal, mapVal);
+                break;
+            case "like":
+                result = ComparisonFunctions.like(condVal, mapVal);
+                break;
+            case "ilike":
+                result = ComparisonFunctions.ilike(condVal, mapVal);
                 break;
         }
 

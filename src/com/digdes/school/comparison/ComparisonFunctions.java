@@ -2,6 +2,9 @@ package com.digdes.school.comparison;
 
 import com.digdes.school.exceptions.WrongComparing;
 
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 public class ComparisonFunctions {
     public static boolean checkEquals(Object condVal, Object mapVal) {
         if (mapVal instanceof String && condVal instanceof String) {
@@ -97,6 +100,32 @@ public class ComparisonFunctions {
                 mapVal instanceof Boolean || condVal instanceof Boolean)
             throw new WrongComparing();
 
+        return false;
+    }
+
+    public static boolean like(Object condVal, Object mapVal) throws WrongComparing {
+        if ((mapVal instanceof String && condVal instanceof String)) {
+            String map = (String) mapVal;
+            String cond = ((String) condVal).replaceAll("%", ".*");
+            Matcher matcher = Pattern.compile(cond).matcher(map);
+            if (matcher.find()) {
+                return true;
+            }
+        } else
+            throw new WrongComparing();
+        return false;
+    }
+
+    public static boolean ilike(Object condVal, Object mapVal) throws WrongComparing {
+        if ((mapVal instanceof String && condVal instanceof String)) {
+            String map = (String) ((String) mapVal).toLowerCase();
+            String cond = ((String) condVal).replaceAll("%", ".*");
+            Matcher matcher = Pattern.compile(cond).matcher(map);
+            if (matcher.find()) {
+                return true;
+            }
+        } else
+            throw new WrongComparing();
         return false;
     }
 }
