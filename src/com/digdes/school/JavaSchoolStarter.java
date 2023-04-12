@@ -96,8 +96,6 @@ public class JavaSchoolStarter {
                 result = ComparisonFunctions.ilike(condVal, mapVal);
                 break;
         }
-
         return result;
     }
-
 }

@@ -33,7 +33,7 @@ public class Main {
 
             result = starter.execute("SELECT WHERE 'lastName' like '%п%'");
 
-            result = starter.execute("SELECT WHERE 'lastName' ilike '%п%'");
+            result = starter.execute("SELECT WHERE 'lastName' ilike '%п%' AND 'active' = false");
 
             result = starter.execute(
                     "DELETE WHERE 'id'=3");
