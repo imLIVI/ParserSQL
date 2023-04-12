@@ -10,13 +10,15 @@ import java.util.regex.Pattern;
 
 public class QueryParser {
     private static final String WHERE = "where";
-    private static final String REGEX_EXPRESSIONS = "'[a-z]+'\\s*[=!><]+\\s*([0-9]+[.]?[0-9]*|'?[a-zа-я]+'?)\\s*[(and)|(or)]*";
-    private static final String REGEX_SIGN_IN_EXPRESSIONS = "[<>=!]+";
+    private static final String REGEX_SEARCH_ONLY_VALUES = "([<>=!]+|like|ilike)\\s*([0-9]+[.]?[0-9]*|'?[a-zа-яA-ZА-Я%]+'?)";
+    private static final String REGEX_EXPRESSIONS = "'[a-z]+'\\s*([<>=!]+|like|ilike)\\s*([0-9]+[.]?[0-9]*|'?[a-zа-яA-ZА-Я%]+'?)\\s*[(and)|(or)]*";
+    private static final String REGEX_SIGN_IN_EXPRESSIONS = "[<>=!]+|like|ilike";
 
     private static final Query queryObj = new Query();
 
     public static Query parse(String query) throws AllFieldsAreNull {
-        query = query.toLowerCase(Locale.ROOT);
+        // Приводим к нижнему регистру всю строку, исключая значения после езнаков и like / ilike
+        query = toLowerCase(query);
 
         // Поиск имени команды - SELECT / UPDATE / DELETE / INSERT
         queryObj.setComand(query.split(" ")[0]);
@@ -34,6 +36,25 @@ public class QueryParser {
             queryObj.setChanges(parseBeforeWhere(query));
         }
         return queryObj;
+    }
+
+    public static String toLowerCase(String query) {
+        Pattern pattern = Pattern.compile(REGEX_SEARCH_ONLY_VALUES);
+        Matcher matcher = pattern.matcher(query);
+
+        StringBuilder stringBuilder = new StringBuilder();
+        int end = 0;
+        while (matcher.find()) {
+            String substr = query
+                    .substring(matcher.start(), matcher.end());
+
+            if(stringBuilder.isEmpty())
+                stringBuilder.append(query.substring(0, matcher.start()).toLowerCase(Locale.ROOT)).append(substr);
+            else
+                stringBuilder.append(query.substring(end, matcher.start()).toLowerCase(Locale.ROOT)).append(substr);
+            end = matcher.end();
+        }
+        return stringBuilder.isEmpty() ? query.toLowerCase(Locale.ROOT) : stringBuilder.toString();
     }
 
     public static Map<String, Object> parseBeforeWhere(String query) throws AllFieldsAreNull {
@@ -105,7 +126,7 @@ public class QueryParser {
 
         // Устанавливаем знак в условии
         String sign = null;
-        Pattern pattern = Pattern.compile("[<>=!]+");
+        Pattern pattern = Pattern.compile(REGEX_SIGN_IN_EXPRESSIONS);
         Matcher matcher = pattern.matcher(condition);
         if (matcher.find())
             sign = condition.substring(matcher.start(), matcher.end());
